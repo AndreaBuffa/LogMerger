@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+use strict;
+#use warnings;
+
+my %map = {};
+my $counter = 0;
+
+printf "Start prcessing...\n";
+foreach my $filename (glob("./file_di_log/*.log")) {
+  printf "reading %s\n", $filename;
+  open my $handle, "<", $filename or die "can't read open '$filename'";
+  while (<$handle>) {
+    #printf "  %s\n", $_;
+
+    my $key = substr $_, 0, (length "Jan  7 19:14:50.461");
+    if (exists $map{$key}) {
+      if (exists ($map{$key}{$_})) {
+	$counter++;
+      } else {
+        $map{$key}{$_} = 1;
+      }
+    } else {
+      $map{$key} = {$_ => 1};
+    }
+  }
+  close $handle or die "can't read close '$filename'";
+}
+
+open(my $outfile, '>', 'out') or die "Could not open file out file $!";
+
+foreach my $key (sort keys %map) {
+    foreach my $line (keys %{ $map{$key} }) {
+       printf $outfile "%s", $line;
+    }
+}
+
+close $outfile;
+printf "%s duplicates deleted\n", $counter;
+printf "done\n";
